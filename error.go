@@ -21,3 +21,11 @@ func ErrorStatus(e interface{}) int {
 	}
 	return -1
 }
+
+func ErrorFailedList(e interface{}) []FailedList {
+	switch e.(type) {
+	case Error:
+		return e.(Error).FailedList
+	}
+	return nil
+}
