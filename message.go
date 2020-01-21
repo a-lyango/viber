@@ -25,6 +25,7 @@ type messageResponse struct {
 // Message interface for all types of viber messages
 type Message interface {
 	SetReceiver(r string)
+	SetBroadcastList(bl []string)
 	SetFrom(from string)
 	SetKeyboard(k *Keyboard)
 }
@@ -32,6 +33,7 @@ type Message interface {
 // TextMessage for Viber
 type TextMessage struct {
 	Receiver      string      `json:"receiver,omitempty"`
+	BroadcastList []string    `json:"broadcast_list,omitempty"`
 	From          string      `json:"from,omitempty"`
 	MinAPIVersion uint        `json:"min_api_version,omitempty"`
 	Sender        Sender      `json:"sender"`
@@ -65,6 +67,26 @@ type VideoMessage struct {
 	Thumbnail string `json:"thumbnail,omitempty"`
 	Size      uint   `json:"size"`
 	Duration  uint   `json:"duration,omitempty"`
+}
+
+// FileMessage structure
+type FileMessage struct {
+	TextMessage
+	Media    string `json:"media"`
+	Size     int    `json:"size"`
+	FileName string `json:"file_name"`
+}
+
+// ContactMessage structure
+type ContactMessage struct {
+	TextMessage
+	Contact Contact `json:"contact"`
+}
+
+type Contact struct {
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+	Avatar      string `json:"avatar"`
 }
 
 // MessageType for viber messaging
@@ -140,6 +162,19 @@ func (v *Viber) NewPictureMessage(msg string, url string, thumbURL string) *Pict
 	}
 }
 
+// NewFileMessage for viber
+func (v *Viber) NewFileMessage(media string, size int, fileName string) *FileMessage {
+	return &FileMessage{
+		TextMessage: TextMessage{
+			Sender: v.Sender,
+			Type:   TypeFileMessage,
+		},
+		Media:    media,
+		Size:     size,
+		FileName: fileName,
+	}
+}
+
 // SendTextMessage to reciever, returns message token
 func (v *Viber) SendTextMessage(receiver string, msg string) (msgToken uint64, err error) {
 	return v.SendMessage(receiver, v.NewTextMessage(msg))
@@ -168,9 +203,20 @@ func (v *Viber) SendMessage(to string, m Message) (msgToken uint64, err error) {
 	return v.sendMessage("https://chatapi.viber.com/pa/send_message", m)
 }
 
+// SendMessage to receiver
+func (v *Viber) SendBroadcastMessage(to []string, m Message) (msgToken uint64, err error) {
+	m.SetBroadcastList(to)
+	return v.sendMessage("https://chatapi.viber.com/pa/broadcast_message", m)
+}
+
 // SetReceiver for text message
 func (m *TextMessage) SetReceiver(r string) {
 	m.Receiver = r
+}
+
+// SetReceiver for text message
+func (m *TextMessage) SetBroadcastList(bl []string) {
+	m.BroadcastList = bl
 }
 
 // SetFrom to text message for public account message
