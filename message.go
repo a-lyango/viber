@@ -16,10 +16,18 @@ import "encoding/json"
 }
 */
 
+// FailedList from Viber
+type FailedList struct {
+	Receiver      string
+	Status        int
+	StatusMessage string
+}
+
 type messageResponse struct {
-	Status        int    `json:"status"`
-	StatusMessage string `json:"status_message"`
-	MessageToken  uint64 `json:"message_token"`
+	Status        int          `json:"status"`
+	StatusMessage string       `json:"status_message"`
+	MessageToken  uint64       `json:"message_token"`
+	FailedList    []FailedList `json:"failed_list"`
 }
 
 // Message interface for all types of viber messages
@@ -114,7 +122,7 @@ func parseMsgResponse(b []byte) (msgToken uint64, err error) {
 	}
 
 	if resp.Status != 0 {
-		return resp.MessageToken, Error{Status: resp.Status, StatusMessage: resp.StatusMessage}
+		return resp.MessageToken, Error{Status: resp.Status, StatusMessage: resp.StatusMessage, FailedList: resp.FailedList}
 	}
 
 	return resp.MessageToken, nil

@@ -4,6 +4,7 @@ package viber
 type Error struct {
 	Status        int
 	StatusMessage string
+	FailedList    []FailedList
 }
 
 // Error interface function
