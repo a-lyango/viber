@@ -1,6 +1,9 @@
 package viber
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 /*
 {
@@ -133,6 +136,7 @@ func (v *Viber) sendMessage(url string, m interface{}) (msgToken uint64, err err
 	if err != nil {
 		return 0, err
 	}
+	fmt.Println(string(b))
 	return parseMsgResponse(b)
 }
 
