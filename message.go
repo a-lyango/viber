@@ -18,9 +18,9 @@ import "encoding/json"
 
 // FailedList from Viber
 type FailedList struct {
-	Receiver      string
-	Status        int
-	StatusMessage string
+	Receiver      string `json:"receiver"`
+	Status        int    `json:"status"`
+	StatusMessage string `json:"status_message"`
 }
 
 type messageResponse struct {
