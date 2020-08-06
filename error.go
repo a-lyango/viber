@@ -4,6 +4,7 @@ package viber
 type Error struct {
 	Status        int
 	StatusMessage string
+	FailedList    []FailedResponse
 }
 
 // Error interface function
@@ -19,4 +20,12 @@ func ErrorStatus(e interface{}) int {
 		return e.(Error).Status
 	}
 	return -1
+}
+
+func ErrorFailedList(e interface{}) []FailedResponse {
+	switch e.(type) {
+	case Error:
+		return e.(Error).FailedList
+	}
+	return nil
 }
