@@ -121,7 +121,7 @@ func parseMsgResponse(b []byte) (msgToken uint64, err error) {
 		return 0, err
 	}
 
-	if resp.Status != 0 {
+	if resp.Status != 0 || len(resp.FailedList) > 0 {
 		return resp.MessageToken, Error{Status: resp.Status, StatusMessage: resp.StatusMessage, FailedList: resp.FailedList}
 	}
 
