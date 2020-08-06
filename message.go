@@ -17,17 +17,17 @@ import "encoding/json"
 */
 
 // FailedList from Viber
-type FailedList struct {
+type FailedMessage struct {
 	Receiver      string `json:"receiver"`
 	Status        int    `json:"status"`
 	StatusMessage string `json:"status_message"`
 }
 
 type messageResponse struct {
-	Status        int          `json:"status"`
-	StatusMessage string       `json:"status_message"`
-	MessageToken  uint64       `json:"message_token"`
-	FailedList    []FailedList `json:"failed_list"`
+	Status        int             `json:"status"`
+	StatusMessage string          `json:"status_message"`
+	MessageToken  uint64          `json:"message_token"`
+	FailedList    []FailedMessage `json:"failed_list"`
 }
 
 // Message interface for all types of viber messages
@@ -122,7 +122,7 @@ func parseMsgResponse(b []byte) (msgToken uint64, err error) {
 	}
 
 	if resp.Status != 0 {
-		return resp.MessageToken, Error{Status: resp.Status, StatusMessage: resp.StatusMessage, FailedList: resp.FailedList}
+		return resp.MessageToken, Error{Status: resp.Status, StatusMessage: resp.StatusMessage}
 	}
 
 	return resp.MessageToken, nil
@@ -134,6 +134,24 @@ func (v *Viber) sendMessage(url string, m interface{}) (msgToken uint64, err err
 		return 0, err
 	}
 	return parseMsgResponse(b)
+}
+
+func (v *Viber) sendBroadcastMessage(url string, m interface{}) (msgToken uint64, failedList []FailedMessage, err error) {
+	b, err := v.PostData(url, m)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	var resp messageResponse
+	if err := json.Unmarshal(b, &resp); err != nil {
+		return 0, nil, err
+	}
+
+	if resp.Status != 0 {
+		return resp.MessageToken, resp.FailedList, Error{Status: resp.Status, StatusMessage: resp.StatusMessage}
+	}
+
+	return resp.MessageToken, nil, nil
 }
 
 // NewTextMessage viber
@@ -212,9 +230,9 @@ func (v *Viber) SendMessage(to string, m Message) (msgToken uint64, err error) {
 }
 
 // SendMessage to receiver
-func (v *Viber) SendBroadcastMessage(to []string, m Message) (msgToken uint64, err error) {
+func (v *Viber) SendBroadcastMessage(to []string, m Message) (msgToken uint64, failedList []FailedMessage, err error) {
 	m.SetBroadcastList(to)
-	return v.sendMessage("https://chatapi.viber.com/pa/broadcast_message", m)
+	return v.sendBroadcastMessage("https://chatapi.viber.com/pa/broadcast_message", m)
 }
 
 // SetReceiver for text message
